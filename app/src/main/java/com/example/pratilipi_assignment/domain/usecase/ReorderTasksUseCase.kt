@@ -18,7 +18,9 @@ import javax.inject.Inject
 class ReorderTasksUseCase @Inject constructor(
     private val repository: TaskRepository
 ) {
-    suspend operator fun invoke(task: Task) {
-        repository.updateTask(task)
+    suspend operator fun invoke(tasks: List<Task>) {
+        tasks.forEach { task ->
+            repository.updateTaskPosition(task.id, task.position)
+        }
     }
 }

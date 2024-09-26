@@ -5,6 +5,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.map as pagingMap
 import com.example.pratilipi_assignment.data.local.TaskDao
+import com.example.pratilipi_assignment.domain.model.Task
 import com.example.pratilipi_assignment.data.model.Task as DataTask
 import com.example.pratilipi_assignment.domain.model.Task as DomainTask
 import com.example.pratilipi_assignment.domain.repository.TaskRepository
@@ -16,15 +17,9 @@ class TaskRepositoryImpl @Inject constructor(
     private val taskDao: TaskDao
 ) : TaskRepository {
 
-    override fun getAllTasksPaged(): Flow<PagingData<DomainTask>> {
-        return Pager(
-            config = PagingConfig(
-                pageSize = 20,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = { taskDao.getAllTasksPaged() }
-        ).flow.map { pagingData ->
-            pagingData.pagingMap { it.toDomainTask() }
+    override fun getAllTasks(): Flow<List<DomainTask>> {
+        return taskDao.getAllTasks().map { list ->
+            list.map { it.toDomainTask() }
         }
     }
 
@@ -38,47 +33,37 @@ class TaskRepositoryImpl @Inject constructor(
         )
     }
 
+//    override fun getAllTasksPaged(): Flow<PagingData<Task>> {
+//
+//    }
+
     override suspend fun insertTask(task: DomainTask) {
-        taskDao.insertTask(
-            DataTask(
-                title = task.title,
-                subtitle = task.subtitle,
-                isCompleted = task.isCompleted,
-                position = task.position
-            )
-        )
+        taskDao.insertTask(task.toDataTask())
     }
 
     override suspend fun updateTask(task: DomainTask) {
-        taskDao.updateTask(
-            DataTask(
-                id = task.id,
-                title = task.title,
-                subtitle = task.subtitle,
-                isCompleted = task.isCompleted,
-                position = task.position
-            )
-        )
+        taskDao.updateTask(task.toDataTask())
     }
 
     override suspend fun deleteTask(task: DomainTask) {
-        taskDao.deleteTask(
-            DataTask(
-                id = task.id,
-                title = task.title,
-                subtitle = task.subtitle,
-                isCompleted = task.isCompleted,
-                position = task.position
-            )
-        )
+        taskDao.deleteTask(task.toDataTask())
     }
 
     override suspend fun getMaxPosition(): Int {
         return taskDao.getMaxPosition() ?: 0
     }
 
-    // NEW
-     override suspend fun updateTaskPosition(taskId: Int, newPosition: Int) {
+    override suspend fun updateTaskPosition(taskId: Int, newPosition: Int) {
         taskDao.updateTaskPosition(taskId, newPosition)
+    }
+
+    private fun DomainTask.toDataTask(): DataTask {
+        return DataTask(
+            id = id,
+            title = title,
+            subtitle = subtitle,
+            isCompleted = isCompleted,
+            position = position
+        )
     }
 }

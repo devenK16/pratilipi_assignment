@@ -1,9 +1,12 @@
 package com.example.pratilipi_assignment.presentation.viewmodel
 
 import android.util.Log
+import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.map
 import com.example.pratilipi_assignment.domain.model.Task
 import com.example.pratilipi_assignment.domain.usecase.AddTaskUseCase
 import com.example.pratilipi_assignment.domain.usecase.DeleteTaskUseCase
@@ -13,8 +16,14 @@ import com.example.pratilipi_assignment.domain.usecase.UpdateTaskUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,7 +39,8 @@ class TaskViewModel @Inject constructor(
     private val _refreshTrigger = MutableStateFlow(0)
     val refreshTrigger: StateFlow<Int> = _refreshTrigger.asStateFlow()
 
-    val tasks: Flow<PagingData<Task>> = getTasksUseCase()
+    val tasks: StateFlow<List<Task>> = getTasksUseCase()
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _showDialog = MutableStateFlow(false)
     val showDialog: StateFlow<Boolean> = _showDialog.asStateFlow()
@@ -85,19 +95,33 @@ class TaskViewModel @Inject constructor(
 //            reorderTasksUseCase(tasks)
 //        }
 //    }
-fun reorderTasks(tasks: MutableList<Task?>) {
+fun reorderTasks(tasks: List<Task>) {
     viewModelScope.launch {
-        tasks.forEachIndexed { index, task ->
-            task?.let {
-                Log.d("TaskReorder", "Updating task ${it.id} to position $index")
-                reorderTasksUseCase(it.copy(position = index))
-            }
-        }
+        reorderTasksUseCase(tasks) // Pass the entire list, not a single task
         refreshList()
     }
 }
 
     private fun refreshList() {
         _refreshTrigger.value += 1
+    }
+
+    // Move and reorder tasks in the current list
+    fun moveTask(fromPosition: Int, toPosition: Int) {
+        viewModelScope.launch {
+            val currentList = tasks.value.toMutableList()
+
+            // Move the task in the list
+            val movedTask = currentList.removeAt(fromPosition)
+            currentList.add(toPosition, movedTask)
+
+            // Update the position in the list (for UI)
+            currentList.forEachIndexed { index, task ->
+                task.position = index
+            }
+
+            // Update the database with new positions
+            reorderTasksUseCase(currentList)
+        }
     }
 }

@@ -9,5 +9,5 @@ import javax.inject.Inject
 class GetTasksUseCase @Inject constructor(
     private val repository: TaskRepository
 ) {
-    operator fun invoke(): Flow<PagingData<Task>> = repository.getAllTasksPaged()
+    operator fun invoke(): Flow<List<Task>> = repository.getAllTasks()
 }
