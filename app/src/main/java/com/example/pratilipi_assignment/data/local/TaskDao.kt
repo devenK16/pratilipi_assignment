@@ -16,6 +16,9 @@ interface TaskDao {
     @Query("SELECT * FROM task_table ORDER BY position ASC")
     fun getAllTasks(): Flow<List<Task>>
 
+    @Query("SELECT * FROM task_table ORDER BY position ASC LIMIT :limit OFFSET :offset")
+    fun getPagedTasks(limit: Int, offset: Int): Flow<List<Task>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTask(task: Task)
 
@@ -25,8 +28,6 @@ interface TaskDao {
     @Delete
     suspend fun deleteTask(task: Task)
 
-//    @Query("SELECT * FROM task_table ORDER BY position ASC")
-//    fun getAllTasksPaged(): PagingSource<Int, Task>
 
     @Query("SELECT MAX(position) FROM task_table")
     suspend fun getMaxPosition(): Int?

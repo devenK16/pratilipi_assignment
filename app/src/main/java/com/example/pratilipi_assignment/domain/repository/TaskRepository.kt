@@ -12,6 +12,8 @@ interface TaskRepository {
     suspend fun updateTask(task: Task)
     suspend fun deleteTask(task: Task)
     suspend fun getMaxPosition(): Int
+    fun getPagedTasks(limit: Int, offset: Int): Flow<List<Task>>
+
     // NEW
     suspend fun updateTaskPosition(taskId: Int, newPosition: Int)
 }

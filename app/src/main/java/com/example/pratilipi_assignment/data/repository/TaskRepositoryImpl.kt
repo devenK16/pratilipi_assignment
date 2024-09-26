@@ -22,6 +22,11 @@ class TaskRepositoryImpl @Inject constructor(
             list.map { it.toDomainTask() }
         }
     }
+    override fun getPagedTasks(limit: Int, offset: Int): Flow<List<DomainTask>> {
+        return taskDao.getPagedTasks(limit, offset).map { list ->
+            list.map { it.toDomainTask() }
+        }
+    }
 
     private fun DataTask.toDomainTask(): DomainTask {
         return DomainTask(
