@@ -43,81 +43,17 @@ import com.example.pratilipi_assignment.presentation.ui.components.TaskItem
 import com.example.pratilipi_assignment.presentation.viewmodel.TaskViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
-//@Composable
-//fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
-//    val tasks = viewModel.tasks.collectAsLazyPagingItems()
-//    val showDialog by viewModel.showDialog.collectAsState()
-//    val taskToEdit by viewModel.taskToEdit.collectAsState()
-//
-//    val coroutineScope = rememberCoroutineScope()
-//
-//    // Drag-and-Drop State
-//    val listState = rememberLazyListState()
-//
-//    Scaffold(
-//        floatingActionButton = {
-//            FloatingActionButton(onClick = { viewModel.openAddTaskDialog() }) {
-//                Icon(Icons.Default.Add, contentDescription = "Add Task")
-//            }
-//        }
-//    ) { paddingValues ->
-//        Box(modifier = Modifier.padding(paddingValues)) {
-//            LazyColumn(
-//                state = listState,
-//                modifier = Modifier.fillMaxSize(),
-//                contentPadding = PaddingValues(16.dp)
-//            ) {
-//                items(
-//                    count = tasks.itemCount,
-//                    key = { index -> tasks[index]?.id ?: index }
-//                ) { index ->
-//                    val task = tasks[index]
-//                    task?.let {
-//                        TaskItem(
-//                            task = it,
-//                            onCheckedChange = { updatedTask ->
-//                                viewModel.updateTask(updatedTask)
-//                            },
-//                            onClick = { viewModel.openEditTaskDialog(it) },
-//                            onMove = { from, to ->
-//                                coroutineScope.launch {
-//
-//                                }
-//                            }
-//                        )
-//                    }
-//                }
-//            }
-//
-//            if (showDialog) {
-//                TaskDialog(
-//                    task = taskToEdit,
-//                    onDismiss = { viewModel.closeDialog() },
-//                    onConfirm = { title, subtitle ->
-//                        if (taskToEdit == null) {
-//                            viewModel.addTask(title, subtitle)
-//                        } else {
-//                            viewModel.updateTask(taskToEdit!!.copy(title = title, subtitle = subtitle))
-//                        }
-//                    },
-//                    onDelete = {
-//                        taskToEdit?.let { viewModel.deleteTask(it) }
-//                    }
-//                )
-//            }
-//        }
-//    }
-//}
-//
+
 
 @Composable
 fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
     val tasks by viewModel.tasks.collectAsState()
     val coroutineScope = rememberCoroutineScope()
+    val showDialog by viewModel.showDialog.collectAsState()
+    val taskToEdit by viewModel.taskToEdit.collectAsState()
 
     // Drag state
-    var draggingTaskIndex by remember { mutableStateOf<Int?>(null) }
+    var draggingTaskId by remember { mutableStateOf<Int?>(null) }  // Use task ID for dragging
     var deltaY by remember { mutableStateOf(0f) } // Separate delta for Y-axis
 
     // List state for scrolling
@@ -138,12 +74,18 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
         Box(modifier = Modifier.padding(paddingValues)) {
             LazyColumn(
                 state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(10.dp),
+//                contentPadding = PaddingValues(16.dp)
             ) {
-                itemsIndexed(tasks, key = { index, task -> task.id }) { index, task ->
+                itemsIndexed(tasks, key = { _, task -> task.id }) { index, task ->
+
+                    // Check if the task is the one being dragged
+                    val isDragging = draggingTaskId == task.id
+
                     // Log the current task being dragged
-                    if (draggingTaskIndex == index) {
+                    if (isDragging) {
                         Log.d("TaskDrag", "Dragging task: ${task.title}")
                     }
 
@@ -157,10 +99,10 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
                             }
                         },
                         modifier = Modifier
-                            .zIndex(if (draggingTaskIndex == index) 1f else 0f) // Only the dragged task gets the higher z-index
+                            .padding(10.dp)
+                            .zIndex(if (isDragging) 1f else 0f) // Only the dragged task gets the higher z-index
                             .offset {
-                                // Only apply the Y offset to the currently dragged task
-                                if (draggingTaskIndex == index) {
+                                if (isDragging) {
                                     IntOffset(x = 0, y = deltaY.toInt())
                                 } else {
                                     IntOffset.Zero
@@ -169,8 +111,11 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
                             .pointerInput(Unit) {
                                 detectDragGesturesAfterLongPress(
                                     onDragStart = {
-                                        draggingTaskIndex = index
-                                        Log.d("TaskDrag", "Started dragging task: ${task.title}")
+                                        draggingTaskId = task.id
+                                        Log.d(
+                                            "TaskDrag",
+                                            "Started dragging task: ${draggingTaskId}"
+                                        )
                                     },
                                     onDrag = { change, dragAmount ->
                                         change.consume()
@@ -178,27 +123,35 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
 
                                         // Calculate the new index based on the delta
                                         val newIndex = calculateNewIndex(
-                                            draggingTaskIndex,
+                                            tasks.indexOfFirst { it.id == draggingTaskId }, // Find the current index of the dragging task by ID
                                             deltaY,
                                             itemHeightPx,
                                             tasks.size,
                                             swapThreshold
                                         )
 
-                                        if (newIndex != null && newIndex != draggingTaskIndex) {
-                                            Log.d("TaskDrag", "Swapped task: ${task.title} to index $newIndex")
-                                            viewModel.moveTask(draggingTaskIndex!!, newIndex)
-                                            draggingTaskIndex = newIndex // Update index after swapping
+                                        if (newIndex != null && newIndex != tasks.indexOfFirst { it.id == draggingTaskId }) {
+                                            Log.d(
+                                                "TaskDrag",
+                                                "Swapped task: ${task.title} to index $newIndex"
+                                            )
+                                            viewModel.moveTask(
+                                                tasks.indexOfFirst { it.id == draggingTaskId },
+                                                newIndex
+                                            )
                                             deltaY = 0f // Reset delta after a swap
                                         }
                                     },
                                     onDragEnd = {
-                                        Log.d("TaskDrag", "Finished dragging task: ${task.title}")
-                                        draggingTaskIndex = null
+                                        Log.d(
+                                            "TaskDrag",
+                                            "Finished dragging task: ${draggingTaskId}"
+                                        )
+                                        draggingTaskId = null
                                         deltaY = 0f
                                     },
                                     onDragCancel = {
-                                        draggingTaskIndex = null
+                                        draggingTaskId = null
                                         deltaY = 0f
                                     }
                                 )
@@ -206,11 +159,39 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
                     )
                 }
             }
+
+            if (showDialog) {
+                TaskDialog(
+                    task = taskToEdit,
+                    onDismiss = { viewModel.closeDialog() },
+                    onConfirm = { title, subtitle ->
+                        if (taskToEdit == null) {
+                            viewModel.addTask(title, subtitle)
+                        } else {
+                            viewModel.updateTask(
+                                taskToEdit!!.copy(
+                                    title = title,
+                                    subtitle = subtitle
+                                )
+                            )
+                        }
+                    },
+                    onDelete = {
+                        taskToEdit?.let { viewModel.deleteTask(it) }
+                    }
+                )
+            }
         }
     }
 }
 
-fun calculateNewIndex(currentIndex: Int?, delta: Float, itemHeightPx: Float, totalItems: Int, swapThreshold: Float): Int? {
+fun calculateNewIndex(
+    currentIndex: Int?,
+    delta: Float,
+    itemHeightPx: Float,
+    totalItems: Int,
+    swapThreshold: Float
+): Int? {
     if (currentIndex == null) return null
 
     return when {

@@ -1,13 +1,16 @@
 package com.example.pratilipi_assignment.presentation.ui.components
 
+import android.text.Layout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,45 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.pratilipi_assignment.domain.model.Task
 
-//@Composable
-//fun TaskItem(
-//    task: Task,
-//    onCheckedChange: (Task) -> Unit,
-//    onClick: () -> Unit,
-//    onMove: (Int, Int) -> Unit
-//) {
-//    Row(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(vertical = 4.dp)
-//            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
-//            .clickable { onClick() }
-//            .padding(16.dp)
-//    ) {
-//        Checkbox(
-//            checked = task.isCompleted,
-//            onCheckedChange = {
-//                onCheckedChange(task.copy(isCompleted = it))
-//            }
-//        )
-//        Spacer(modifier = Modifier.width(8.dp))
-//        Column(modifier = Modifier.weight(1f)) {
-//            Text(text = task.title, style = MaterialTheme.typography.titleMedium)
-//            Text(text = task.subtitle, style = MaterialTheme.typography.bodyMedium)
-//        }
-//        Icon(
-//            imageVector = Icons.Default.MoreVert,
-//            contentDescription = "Drag Handle",
-//            modifier = Modifier
-//                .size(24.dp)
-//                .pointerInput(Unit) {
-//                    detectDragGestures { change, dragAmount ->
-//
-//                    }
-//                }
-//        )
-//    }
-//}
 
 @Composable
 fun TaskItem(
@@ -86,30 +50,27 @@ fun TaskItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(4.dp)
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
             .clickable { onClick() }
-            .padding(16.dp)
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.primary, shape = RoundedCornerShape(8.dp))
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
         Checkbox(
             checked = task.isCompleted,
             onCheckedChange = { onCheckedChange(task.copy(isCompleted = it)) }
         )
         Spacer(modifier = Modifier.width(8.dp))
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f),
+        ) {
             Text(text = task.title, style = MaterialTheme.typography.titleMedium)
             Text(text = task.subtitle, style = MaterialTheme.typography.bodyMedium)
         }
-        Icon(
-            imageVector = Icons.Default.MoreVert,
-            contentDescription = "Drag Handle",
-            modifier = Modifier.pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    onMove(task.id, dragAmount.y.toInt())
-                }
-            }
-        )
     }
 }
