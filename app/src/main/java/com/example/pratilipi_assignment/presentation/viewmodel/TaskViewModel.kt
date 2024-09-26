@@ -86,6 +86,7 @@ class TaskViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+        refreshList()
     }
 
     fun openAddTaskDialog() {
@@ -106,8 +107,10 @@ class TaskViewModel @Inject constructor(
     fun addTask(title: String, subtitle: String) {
         viewModelScope.launch {
             addTaskUseCase(title, subtitle)
+            val updatedTasks = getTasksUseCase().first()
+            _tasks.value = updatedTasks
             closeDialog()
-            // Refresh the entire list to include the new task
+            refreshList()
             loadNextPage()
         }
     }
@@ -118,6 +121,7 @@ class TaskViewModel @Inject constructor(
             val updatedList = _tasks.value.map { if (it.id == task.id) task else it }
             _tasks.value = updatedList
             closeDialog()
+            refreshList()
         }
     }
 
