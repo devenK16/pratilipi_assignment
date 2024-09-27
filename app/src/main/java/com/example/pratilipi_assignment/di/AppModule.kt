@@ -8,6 +8,7 @@ import com.example.pratilipi_assignment.data.repository.TaskRepositoryImpl
 import com.example.pratilipi_assignment.domain.repository.TaskRepository
 import com.example.pratilipi_assignment.domain.usecase.AddTaskUseCase
 import com.example.pratilipi_assignment.domain.usecase.DeleteTaskUseCase
+import com.example.pratilipi_assignment.domain.usecase.GetPagedTasksUseCase
 import com.example.pratilipi_assignment.domain.usecase.GetTasksUseCase
 import com.example.pratilipi_assignment.domain.usecase.ReorderTasksUseCase
 import com.example.pratilipi_assignment.domain.usecase.UpdateTaskUseCase
@@ -47,6 +48,12 @@ object AppModule {
     @Singleton
     fun provideGetTasksUseCase(repository: TaskRepository): GetTasksUseCase {
         return GetTasksUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetPAgedTasksUseCase(repository: TaskRepository): GetPagedTasksUseCase {
+        return GetPagedTasksUseCase(repository)
     }
 
     @Provides

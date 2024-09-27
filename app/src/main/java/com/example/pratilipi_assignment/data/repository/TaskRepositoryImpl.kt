@@ -38,9 +38,6 @@ class TaskRepositoryImpl @Inject constructor(
         )
     }
 
-//    override fun getAllTasksPaged(): Flow<PagingData<Task>> {
-//
-//    }
 
     override suspend fun insertTask(task: DomainTask) {
         taskDao.insertTask(task.toDataTask())

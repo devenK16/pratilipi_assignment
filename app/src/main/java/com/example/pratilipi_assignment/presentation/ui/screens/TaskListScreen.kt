@@ -51,7 +51,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 
-
 @Composable
 fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
     val tasks by viewModel.tasks.collectAsState()
@@ -72,9 +71,6 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
     val itemHeightPx = with(density) { 56.dp.toPx() }
     val swapThreshold = itemHeightPx / 3 // Threshold for swapping
 
-//    LaunchedEffect(Unit) {
-//        viewModel.loadNextPage(true)
-//    }
     LaunchedEffect(tasks) {
         if (!isLoading) {
             snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -159,27 +155,6 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
                     )
                 }
 
-//                item {
-//                    if (isLoading) {
-//                        Box(
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp),
-//                            contentAlignment = Alignment.Center
-//                        ) {
-//                            CircularProgressIndicator()
-//                        }
-//                    } else if (!viewModel.isLastPage)  {
-//                        Button(
-//                            onClick = { viewModel.loadNextPage() },
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .padding(16.dp)
-//                        ) {
-//                            Text("Load More")
-//                        }
-//                    }
-//                }
                 if (isLoading) {
                     item {
                         Box(
@@ -218,6 +193,7 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
         }
     }
 }
+
 fun calculateNewIndex(
     currentIndex: Int?,
     delta: Float,
@@ -227,7 +203,7 @@ fun calculateNewIndex(
 ): Int? {
     if (currentIndex == null) return null
 
-    val newIndex =  when {
+    val newIndex = when {
         delta > swapThreshold && currentIndex < totalItems - 1 -> currentIndex + 1 // Move down
         delta < -swapThreshold && currentIndex > 0 -> currentIndex - 1 // Move up
         else -> currentIndex

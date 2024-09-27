@@ -45,8 +45,6 @@ class TaskViewModel @Inject constructor(
     val tasks: StateFlow<List<Task>> = _tasks.asStateFlow()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-//    var tasks: StateFlow<List<Task>> = getPagedTasksUseCase(10, 1 * 10)
-//        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _showDialog = MutableStateFlow(false)
     val showDialog: StateFlow<Boolean> = _showDialog.asStateFlow()
@@ -70,6 +68,8 @@ class TaskViewModel @Inject constructor(
 
         viewModelScope.launch {
             _isLoading.value = true
+
+            Log.d("TaskViewModel", "Loaded page before: $currentPage")
             try {
                 val newTasks = getPagedTasksUseCase(pageSize, currentPage * pageSize).first()
                 if (newTasks.isEmpty()) {
@@ -82,6 +82,8 @@ class TaskViewModel @Inject constructor(
                     _tasks.value = _tasks.value + uniqueNewTasks
                     currentPage++
                 }
+                Log.d("TaskViewModel", "Loaded page after: $currentPage")
+                Log.d("TaskViewModel" , _tasks.value.toString())
             } finally {
                 _isLoading.value = false
             }
@@ -130,19 +132,13 @@ class TaskViewModel @Inject constructor(
             deleteTaskUseCase(task)
             _tasks.value = _tasks.value.filter { it.id != task.id }
             closeDialog()
-            // Refresh the list to ensure correct ordering
             loadNextPage()
         }
     }
 
-    //    fun reorderTasks(tasks: MutableList<Task?>) {
-//        viewModelScope.launch {
-//            reorderTasksUseCase(tasks)
-//        }
-//    }
     fun reorderTasks(tasks: List<Task>) {
         viewModelScope.launch {
-            reorderTasksUseCase(tasks) // Pass the entire list, not a single task
+            reorderTasksUseCase(tasks)
             refreshList()
         }
     }
@@ -151,24 +147,10 @@ class TaskViewModel @Inject constructor(
         _refreshTrigger.value += 1
     }
 
-    // Move and reorder tasks in the current list
     fun moveTask(fromPosition: Int, toPosition: Int) {
         viewModelScope.launch {
             val currentList = _tasks.value.toMutableList()
 
-//            // Move the task in the list
-//            val movedTask = currentList.removeAt(fromPosition)
-//            currentList.add(toPosition, movedTask)
-//
-//            // Update the position in the list (for UI)
-//            currentList.forEachIndexed { index, task ->
-//                task.position = index
-//            }
-//
-//            _tasks.value = currentList
-//            // Update the database with new positions
-//            reorderTasksUseCase(currentList)
-            // Check if the positions are valid
             if (fromPosition in currentList.indices && toPosition in currentList.indices) {
                 // Move the task in the list
                 val movedTask = currentList.removeAt(fromPosition)
@@ -183,7 +165,6 @@ class TaskViewModel @Inject constructor(
                 // Update the database with new positions
                 reorderTasksUseCase(currentList)
             } else {
-                // Log an error or handle the invalid position case
                 Log.e("TaskViewModel", "Invalid position: from=$fromPosition, to=$toPosition")
             }
         }
