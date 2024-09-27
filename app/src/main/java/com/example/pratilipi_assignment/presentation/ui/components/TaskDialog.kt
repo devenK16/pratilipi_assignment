@@ -40,20 +40,22 @@ fun TaskDialog(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Title") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 OutlinedTextField(
                     value = subtitle,
                     onValueChange = { subtitle = it },
                     label = { Text("Subtitle") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(title, subtitle) },
+                onClick = { onConfirm(title.trim(), subtitle.trim()) },
                 enabled = title.isNotBlank() && subtitle.isNotBlank()
             ) {
                 Text(text = if (task == null) "Add" else "Update")

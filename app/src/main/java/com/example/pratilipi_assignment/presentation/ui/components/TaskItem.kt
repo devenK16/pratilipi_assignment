@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.example.pratilipi_assignment.domain.model.Task
@@ -69,8 +70,18 @@ fun TaskItem(
             modifier = Modifier
                 .weight(1f),
         ) {
-            Text(text = task.title, style = MaterialTheme.typography.titleMedium)
-            Text(text = task.subtitle, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = task.title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                )
+            )
+            Text(
+                text = task.subtitle,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
+                )
+            )
         }
     }
 }
