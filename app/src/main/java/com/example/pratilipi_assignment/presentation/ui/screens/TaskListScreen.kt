@@ -112,8 +112,9 @@ fun TaskListScreen(viewModel: TaskViewModel = hiltViewModel()) {
                                 viewModel.moveTask(fromIndex, toIndex)
                             }
                         },
+                        isDragging = isDragging,
                         modifier = Modifier
-                            .padding(10.dp)
+                            .padding(vertical = 4.dp)
                             .zIndex(if (isDragging) 1f else 0f)
                             .offset {
                                 if (isDragging) {
@@ -226,9 +227,12 @@ fun calculateNewIndex(
 ): Int? {
     if (currentIndex == null) return null
 
-    return when {
+    val newIndex =  when {
         delta > swapThreshold && currentIndex < totalItems - 1 -> currentIndex + 1 // Move down
         delta < -swapThreshold && currentIndex > 0 -> currentIndex - 1 // Move up
         else -> currentIndex
     }
+
+
+    return newIndex.coerceIn(0, totalItems - 1)
 }

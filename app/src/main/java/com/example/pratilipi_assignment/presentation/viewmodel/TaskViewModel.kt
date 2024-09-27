@@ -156,18 +156,36 @@ class TaskViewModel @Inject constructor(
         viewModelScope.launch {
             val currentList = _tasks.value.toMutableList()
 
-            // Move the task in the list
-            val movedTask = currentList.removeAt(fromPosition)
-            currentList.add(toPosition, movedTask)
+//            // Move the task in the list
+//            val movedTask = currentList.removeAt(fromPosition)
+//            currentList.add(toPosition, movedTask)
+//
+//            // Update the position in the list (for UI)
+//            currentList.forEachIndexed { index, task ->
+//                task.position = index
+//            }
+//
+//            _tasks.value = currentList
+//            // Update the database with new positions
+//            reorderTasksUseCase(currentList)
+            // Check if the positions are valid
+            if (fromPosition in currentList.indices && toPosition in currentList.indices) {
+                // Move the task in the list
+                val movedTask = currentList.removeAt(fromPosition)
+                currentList.add(toPosition, movedTask)
 
-            // Update the position in the list (for UI)
-            currentList.forEachIndexed { index, task ->
-                task.position = index
+                // Update the position in the list (for UI)
+                currentList.forEachIndexed { index, task ->
+                    task.position = index
+                }
+
+                _tasks.value = currentList
+                // Update the database with new positions
+                reorderTasksUseCase(currentList)
+            } else {
+                // Log an error or handle the invalid position case
+                Log.e("TaskViewModel", "Invalid position: from=$fromPosition, to=$toPosition")
             }
-
-            _tasks.value = currentList
-            // Update the database with new positions
-            reorderTasksUseCase(currentList)
         }
     }
 }
